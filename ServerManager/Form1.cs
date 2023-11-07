@@ -69,6 +69,7 @@ namespace ServerManager
 
             serverProcess.Start();
 
+
             openServerButton.BackColor = Color.Chartreuse;
         }
 

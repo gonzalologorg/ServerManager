@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             groupBox1 = new GroupBox();
             label4 = new Label();
@@ -46,6 +47,7 @@
             restartClients = new Button();
             folderChooser = new OpenFileDialog();
             folderBrowser = new FolderBrowserDialog();
+            timer1 = new System.Windows.Forms.Timer(components);
             groupBox1.SuspendLayout();
             SuspendLayout();
             // 
@@ -212,15 +214,21 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
+            AutoSize = true;
             ClientSize = new Size(584, 281);
             Controls.Add(restartClients);
             Controls.Add(restartServer);
             Controls.Add(openClientButton);
             Controls.Add(openServerButton);
             Controls.Add(groupBox1);
+            Cursor = Cursors.Default;
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            MaximizeBox = false;
             MaximumSize = new Size(600, 320);
             MinimumSize = new Size(600, 320);
             Name = "Form1";
+            SizeGripStyle = SizeGripStyle.Hide;
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "Server Dashboard";
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
@@ -246,5 +254,6 @@
         private Label label4;
         private TextBox clientArgs;
         private FolderBrowserDialog folderBrowser;
+        private System.Windows.Forms.Timer timer1;
     }
 }
