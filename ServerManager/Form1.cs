@@ -138,11 +138,13 @@ namespace ServerManager
 
         private void restartClients_Click(object sender, EventArgs e)
         {
+            if (clientProcesses.Count == 0) return;
+
             foreach (Process process in clientProcesses)
             {
+                process.Kill();
                 process.CloseMainWindow();
                 process.Close();
-                process.Kill();
             }
 
             clientProcesses.Clear();
