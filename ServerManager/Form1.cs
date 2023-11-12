@@ -101,11 +101,11 @@ namespace ServerManager
         private void openClientButton_Click(object sender, EventArgs e)
         {
 
-            float screenWidth = Screen.PrimaryScreen.Bounds.Width;
-            float screenHeight = Screen.PrimaryScreen.Bounds.Height;
-            float margin = screenHeight * .1f;
+            string screenWidth = resolutionBox.Text.Substring(0, 4).ToString();
+            string screenHeight = resolutionBox.Text.Substring(5).ToString();
+            float margin = 96f;
 
-            string size = "-w " + MathF.Round(screenWidth * .66f).ToString() + " -h " + MathF.Round(screenHeight * .66f).ToString();
+            string size = "-w " + screenWidth + " -h " + screenHeight;
             size += " -x " + (clientProcesses.Count * margin * 1.25f).ToString() + " -y " + (clientProcesses.Count * margin).ToString();
 
             Process newClient = new Process();

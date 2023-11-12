@@ -31,6 +31,7 @@
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             groupBox1 = new GroupBox();
+            resolutionBox = new ComboBox();
             label4 = new Label();
             clientArgs = new TextBox();
             label3 = new Label();
@@ -53,6 +54,7 @@
             // 
             // groupBox1
             // 
+            groupBox1.Controls.Add(resolutionBox);
             groupBox1.Controls.Add(label4);
             groupBox1.Controls.Add(clientArgs);
             groupBox1.Controls.Add(label3);
@@ -70,6 +72,18 @@
             groupBox1.TabStop = false;
             groupBox1.Text = "Paths";
             // 
+            // resolutionBox
+            // 
+            resolutionBox.DisplayMember = "1600x900";
+            resolutionBox.FormattingEnabled = true;
+            resolutionBox.Items.AddRange(new object[] { "1280x720", "1600x900", "1920x1080" });
+            resolutionBox.Location = new Point(449, 171);
+            resolutionBox.Name = "resolutionBox";
+            resolutionBox.Size = new Size(105, 23);
+            resolutionBox.TabIndex = 10;
+            resolutionBox.Text = "1600x900";
+            resolutionBox.ValueMember = "1600x900";
+            // 
             // label4
             // 
             label4.AutoSize = true;
@@ -84,7 +98,7 @@
             // 
             clientArgs.Location = new Point(6, 171);
             clientArgs.Name = "clientArgs";
-            clientArgs.Size = new Size(548, 23);
+            clientArgs.Size = new Size(437, 23);
             clientArgs.TabIndex = 8;
             clientArgs.Text = "-multirun -insecure -fullwindowsdump -nodns -nopreload";
             clientArgs.TextChanged += clientArgs_TextChanged;
@@ -221,7 +235,6 @@
             Controls.Add(openClientButton);
             Controls.Add(openServerButton);
             Controls.Add(groupBox1);
-            Cursor = Cursors.Default;
             Icon = (Icon)resources.GetObject("$this.Icon");
             MaximizeBox = false;
             MaximumSize = new Size(600, 320);
@@ -255,5 +268,6 @@
         private TextBox clientArgs;
         private FolderBrowserDialog folderBrowser;
         private System.Windows.Forms.Timer timer1;
+        private ComboBox resolutionBox;
     }
 }
