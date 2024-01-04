@@ -70,5 +70,17 @@ namespace ServerManager.Properties {
                 this["clientArgs"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string commandBox {
+            get {
+                return ((string)(this["commandBox"]));
+            }
+            set {
+                this["commandBox"] = value;
+            }
+        }
     }
 }
