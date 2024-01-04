@@ -2,6 +2,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Net;
+using System.Drawing;
 
 namespace ServerManager
 {
@@ -10,13 +11,40 @@ namespace ServerManager
 
         Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
         Process serverProcess;
-        List<Process> clientProcesses = new List<Process>();
 
-        public Form1()
+        PresetManager presetManager;
+        ScriptsManager scriptsManager;
+
+        public Form1(PresetManager presets, ScriptsManager scripts)
         {
             InitializeComponent();
             serverPath.Text = Properties.Settings.Default.serverPath;
             clientPath.Text = Properties.Settings.Default.clientPath;
+            commandBox.Text = Properties.Settings.Default.commandBox;
+
+            presetManager = presets;
+            scriptsManager = scripts;
+
+            rebuildPresets(presets);
+            rebuildScripts(scripts);
+        }
+
+        private void rebuildPresets(PresetManager presets)
+        {
+            presetsBox.Items.Clear();
+            foreach (Preset preset in presets.presetList)
+            {
+                presetsBox.Items.Add(preset.Name);
+            }
+        }
+
+        private void rebuildScripts(ScriptsManager scripts)
+        {
+            scriptsBox.Items.Clear();
+            foreach (string script in scripts.scripts)
+            {
+                scriptsBox.Items.Add(script);
+            }
         }
 
         private void openServerPath_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -98,56 +126,133 @@ namespace ServerManager
             }
             throw new Exception("No network adapters with an IPv4 address in the system!");
         }
+
+        int instances = 0;
         private void openClientButton_Click(object sender, EventArgs e)
         {
+            instances++;
 
             string screenWidth = resolutionBox.Text.Substring(0, 4).ToString();
             string screenHeight = resolutionBox.Text.Substring(5).ToString();
             float margin = 96f;
 
             string size = "-w " + screenWidth + " -h " + screenHeight;
-            size += " -x " + (clientProcesses.Count * margin * 1.25f).ToString() + " -y " + (clientProcesses.Count * margin).ToString();
+            size += " -x " + ((instances % 2) * margin * 1.25f).ToString() + " -y " + ((instances % 2) * margin).ToString();
 
             Process newClient = new Process();
             newClient.StartInfo.Arguments = clientArgs.Text + " +connect " + GetLocalIPAddress() + " " + size;
             newClient.StartInfo.FileName = clientPath.Text;
-            newClient.EnableRaisingEvents = true;
-            newClient.Exited += NewClient_Exited;
 
             newClient.Start();
-
-            clientProcesses.Add(newClient);
             openClientButton.BackColor = Color.Teal;
-        }
-
-        private void NewClient_Exited(object? sender, EventArgs e)
-        {
-            List<Process> processes = new List<Process>();
-            foreach (Process process in clientProcesses)
-            {
-                if (process != null)
-                    processes.Add(process);
-            }
-
-            clientProcesses = processes;
-            if (clientProcesses.Count == 0)
-            {
-                openClientButton.BackColor = SystemColors.ButtonFace;
-            }
         }
 
         private void restartClients_Click(object sender, EventArgs e)
         {
-            if (clientProcesses.Count == 0) return;
-
-            foreach (Process process in clientProcesses)
+            Process[] processes = Process.GetProcesses();
+            foreach (Process process in processes)
             {
-                process.Kill();
-                process.CloseMainWindow();
-                process.Close();
+                Console.WriteLine(process.Id);
+                if (process.ProcessName == "hl2")
+                {
+                    process.Kill(true);
+                    process.Close();
+                }
+            }
+        }
+
+        private void commandButton_Click(object sender, EventArgs e)
+        {
+            if (File.Exists("./command.bat"))
+                File.Delete("./command.bat");
+
+            File.WriteAllText("./command.bat", commandBox.Text + "\nexit;");
+            Process? proc = null;
+
+            proc = new Process();
+            proc.StartInfo.WorkingDirectory = Environment.CurrentDirectory;
+            proc.StartInfo.FileName = "./command.bat";
+            proc.StartInfo.CreateNoWindow = true;
+            proc.Start();
+            proc.WaitForExit();
+            proc.Close();
+        }
+
+        private void commandBox_TextChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.commandBox = commandBox.Text;
+            Properties.Settings.Default.Save();
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ComboBox? cmb = sender as ComboBox;
+            try
+            {
+                Preset preset = presetManager.presetList[cmb.SelectedIndex];
+                if (preset != null)
+                {
+                    serverPath.Text = preset.Path;
+                    serverArgs.Text = preset.Arguments;
+                }
+            }
+            catch { }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if (presetsBox.Text == "")
+            {
+                MessageBox.Show("Missing Name!");
+                return;
             }
 
-            clientProcesses.Clear();
+            presetManager.addPreset(serverPath.Text, serverArgs.Text, presetsBox.Text);
+            rebuildPresets(presetManager);
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            string selected = presetsBox.Text;
+            if (selected == null || selected == "")
+            {
+                return;
+            }
+            presetManager.removePreset(selected);
+            rebuildPresets(presetManager);
+            presetsBox.Text = "";
+        }
+
+        private void scriptSave_Click(object sender, EventArgs e)
+        {
+            string result = scriptsBox.Text;
+            if (result == "")
+            {
+                MessageBox.Show("Missing Name!");
+                return;
+            }
+
+            File.WriteAllText("./scripts/" + result + ".bat", commandBox.Text);
+            scriptsManager = new ScriptsManager();
+            rebuildScripts(scriptsManager);
+        }
+
+        private void scriptsBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ComboBox? cmb = sender as ComboBox;
+            try
+            {
+                string script = scriptsManager.scripts[cmb.SelectedIndex];
+                if (script != null)
+                {
+                    string fileData = File.ReadAllText("./scripts/" + script + ".bat");
+                    if (fileData != null)
+                    {
+                        commandBox.Text = fileData;
+                    }
+                }
+            }
+            catch { }
         }
     }
 }
