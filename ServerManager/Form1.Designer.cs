@@ -31,6 +31,8 @@
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             groupBox1 = new GroupBox();
+            autoJoin = new CheckBox();
+            portsOpen = new ComboBox();
             openClientPath = new LinkLabel();
             label2 = new Label();
             clientPath = new TextBox();
@@ -56,10 +58,12 @@
             commandBox = new TextBox();
             commandButton = new Button();
             groupBox2 = new GroupBox();
+            uniqueBox = new CheckBox();
             label6 = new Label();
             scriptRemove = new Button();
             scriptSave = new Button();
             scriptsBox = new ComboBox();
+            commandServer = new CheckBox();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             SuspendLayout();
@@ -67,6 +71,8 @@
             // groupBox1
             // 
             groupBox1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            groupBox1.Controls.Add(autoJoin);
+            groupBox1.Controls.Add(portsOpen);
             groupBox1.Controls.Add(openClientPath);
             groupBox1.Controls.Add(label2);
             groupBox1.Controls.Add(clientPath);
@@ -81,6 +87,26 @@
             groupBox1.TabIndex = 0;
             groupBox1.TabStop = false;
             groupBox1.Text = "Client";
+            // 
+            // autoJoin
+            // 
+            autoJoin.AutoSize = true;
+            autoJoin.Location = new Point(337, 119);
+            autoJoin.Name = "autoJoin";
+            autoJoin.Size = new Size(73, 19);
+            autoJoin.TabIndex = 12;
+            autoJoin.Text = "AutoJoin";
+            autoJoin.UseVisualStyleBackColor = true;
+            // 
+            // portsOpen
+            // 
+            portsOpen.FormattingEnabled = true;
+            portsOpen.Items.AddRange(new object[] { "27015", "27016", "27017", "27018", "27019", "27020" });
+            portsOpen.Location = new Point(230, 117);
+            portsOpen.Name = "portsOpen";
+            portsOpen.Size = new Size(101, 23);
+            portsOpen.TabIndex = 11;
+            portsOpen.Text = "27015";
             // 
             // openClientPath
             // 
@@ -118,7 +144,7 @@
             openClientButton.BackColor = SystemColors.ButtonFace;
             openClientButton.Location = new Point(6, 117);
             openClientButton.Name = "openClientButton";
-            openClientButton.Size = new Size(324, 23);
+            openClientButton.Size = new Size(218, 23);
             openClientButton.TabIndex = 2;
             openClientButton.Text = "Open Client";
             openClientButton.UseVisualStyleBackColor = false;
@@ -127,9 +153,9 @@
             // restartClients
             // 
             restartClients.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            restartClients.Location = new Point(337, 117);
+            restartClients.Location = new Point(422, 117);
             restartClients.Name = "restartClients";
-            restartClients.Size = new Size(276, 23);
+            restartClients.Size = new Size(191, 23);
             restartClients.TabIndex = 4;
             restartClients.Text = "Close Clients";
             restartClients.UseVisualStyleBackColor = true;
@@ -261,7 +287,7 @@
             openServerButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             openServerButton.Location = new Point(6, 109);
             openServerButton.Name = "openServerButton";
-            openServerButton.Size = new Size(258, 23);
+            openServerButton.Size = new Size(172, 23);
             openServerButton.TabIndex = 1;
             openServerButton.Text = "Open Server";
             openServerButton.UseVisualStyleBackColor = false;
@@ -299,7 +325,7 @@
             commandButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             commandButton.Location = new Point(12, 413);
             commandButton.Name = "commandButton";
-            commandButton.Size = new Size(624, 22);
+            commandButton.Size = new Size(514, 22);
             commandButton.TabIndex = 6;
             commandButton.Text = "Custom Command";
             commandButton.UseVisualStyleBackColor = true;
@@ -308,6 +334,7 @@
             // groupBox2
             // 
             groupBox2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            groupBox2.Controls.Add(uniqueBox);
             groupBox2.Controls.Add(label1);
             groupBox2.Controls.Add(openServerPath);
             groupBox2.Controls.Add(serverPath);
@@ -321,6 +348,19 @@
             groupBox2.TabIndex = 15;
             groupBox2.TabStop = false;
             groupBox2.Text = "Server";
+            // 
+            // uniqueBox
+            // 
+            uniqueBox.AutoSize = true;
+            uniqueBox.Checked = true;
+            uniqueBox.CheckState = CheckState.Checked;
+            uniqueBox.Location = new Point(181, 112);
+            uniqueBox.Name = "uniqueBox";
+            uniqueBox.Size = new Size(64, 19);
+            uniqueBox.TabIndex = 8;
+            uniqueBox.Text = "Unique";
+            uniqueBox.UseVisualStyleBackColor = true;
+            uniqueBox.CheckedChanged += uniqueBox_CheckedChanged;
             // 
             // label6
             // 
@@ -359,12 +399,26 @@
             scriptsBox.TabIndex = 16;
             scriptsBox.SelectedIndexChanged += scriptsBox_SelectedIndexChanged;
             // 
+            // commandServer
+            // 
+            commandServer.AutoSize = true;
+            commandServer.Checked = true;
+            commandServer.CheckState = CheckState.Checked;
+            commandServer.Location = new Point(532, 413);
+            commandServer.Name = "commandServer";
+            commandServer.Size = new Size(90, 19);
+            commandServer.TabIndex = 20;
+            commandServer.Text = "Open Server";
+            commandServer.UseVisualStyleBackColor = true;
+            commandServer.CheckedChanged += commandServer_CheckedChanged;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             AutoSize = true;
             ClientSize = new Size(642, 441);
+            Controls.Add(commandServer);
             Controls.Add(label6);
             Controls.Add(scriptRemove);
             Controls.Add(scriptSave);
@@ -423,5 +477,9 @@
         private Button scriptRemove;
         private Button scriptSave;
         private ComboBox scriptsBox;
+        private CheckBox uniqueBox;
+        private CheckBox commandServer;
+        private ComboBox portsOpen;
+        private CheckBox autoJoin;
     }
 }

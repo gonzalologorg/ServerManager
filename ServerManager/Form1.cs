@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net.Sockets;
 using System.Net;
 using System.Drawing;
+using System.ComponentModel;
 
 namespace ServerManager
 {
@@ -15,18 +16,47 @@ namespace ServerManager
         PresetManager presetManager;
         ScriptsManager scriptsManager;
 
+        TCPListener listener;
+        List<string> exclude = new List<string>();
+
         public Form1(PresetManager presets, ScriptsManager scripts)
         {
             InitializeComponent();
             serverPath.Text = Properties.Settings.Default.serverPath;
             clientPath.Text = Properties.Settings.Default.clientPath;
             commandBox.Text = Properties.Settings.Default.commandBox;
+            uniqueBox.Checked = Properties.Settings.Default.uniqueBox;
+            commandServer.Checked = Properties.Settings.Default.commandServer;
 
             presetManager = presets;
             scriptsManager = scripts;
 
             rebuildPresets(presets);
             rebuildScripts(scripts);
+
+            listener = new TCPListener();
+            StartCheckingPorts();
+        }
+
+        public void StartCheckingPorts()
+        {
+            var task = Task.Run(async () =>
+            {
+                //converts portsOpen.Text to number
+
+                int portNumber = Int32.Parse(portsOpen.Text);
+                bool isOpen = await TCPListener.StartWorker(portNumber);
+
+                if (autoJoin.Checked && isOpen)
+                {
+                    openClient();
+                    autoJoin.Checked = false;
+                }
+
+                Thread.Sleep(1000);
+                StartCheckingPorts();
+            });
+
         }
 
         private void rebuildPresets(PresetManager presets)
@@ -81,14 +111,27 @@ namespace ServerManager
             Properties.Settings.Default.Save();
         }
 
-        private void openServerButton_Click(object sender, EventArgs e)
+        private void openClient()
         {
-            if (serverProcess != null)
-            {
-                serverProcess.CloseMainWindow();
-                serverProcess.Close();
-            }
+            instances++;
 
+            string screenWidth = resolutionBox.Text.Substring(0, 4).ToString();
+            string screenHeight = resolutionBox.Text.Substring(5).ToString();
+            float margin = 96f;
+
+            string size = "-w " + screenWidth + " -h " + screenHeight;
+            size += " -x " + ((instances % 2) * margin * 1.25f).ToString() + " -y " + ((instances % 2) * margin).ToString();
+
+            Process newClient = new Process();
+            newClient.StartInfo.Arguments = clientArgs.Text + " +connect " + GetLocalIPAddress() + ":" + portsOpen.Text + " " + size;
+            newClient.StartInfo.FileName = clientPath.Text;
+
+            newClient.Start();
+            openClientButton.BackColor = Color.Teal;
+        }
+
+        private void openServer()
+        {
             serverProcess = new Process();
             serverProcess.StartInfo.Arguments = serverArgs.Text;
             serverProcess.StartInfo.FileName = serverPath.Text + "\\srcds.exe";
@@ -96,9 +139,18 @@ namespace ServerManager
             serverProcess.Exited += ServerProcess_Exited;
 
             serverProcess.Start();
+        }
 
+        private void openServerButton_Click(object sender, EventArgs e)
+        {
+            if (Properties.Settings.Default.uniqueBox && serverProcess != null)
+            {
+                serverProcess.CloseMainWindow();
+                serverProcess.Close();
+            }
 
             openServerButton.BackColor = Color.Chartreuse;
+            openServer();
         }
 
         private void ServerProcess_Exited(object? sender, EventArgs e)
@@ -130,21 +182,7 @@ namespace ServerManager
         int instances = 0;
         private void openClientButton_Click(object sender, EventArgs e)
         {
-            instances++;
-
-            string screenWidth = resolutionBox.Text.Substring(0, 4).ToString();
-            string screenHeight = resolutionBox.Text.Substring(5).ToString();
-            float margin = 96f;
-
-            string size = "-w " + screenWidth + " -h " + screenHeight;
-            size += " -x " + ((instances % 2) * margin * 1.25f).ToString() + " -y " + ((instances % 2) * margin).ToString();
-
-            Process newClient = new Process();
-            newClient.StartInfo.Arguments = clientArgs.Text + " +connect " + GetLocalIPAddress() + " " + size;
-            newClient.StartInfo.FileName = clientPath.Text;
-
-            newClient.Start();
-            openClientButton.BackColor = Color.Teal;
+            openClient();
         }
 
         private void restartClients_Click(object sender, EventArgs e)
@@ -169,6 +207,9 @@ namespace ServerManager
             File.WriteAllText("./command.bat", commandBox.Text + "\nexit;");
             Process? proc = null;
 
+            commandButton.BackColor = Color.Orange;
+            this.Cursor = Cursors.WaitCursor;
+
             proc = new Process();
             proc.StartInfo.WorkingDirectory = Environment.CurrentDirectory;
             proc.StartInfo.FileName = "./command.bat";
@@ -176,6 +217,14 @@ namespace ServerManager
             proc.Start();
             proc.WaitForExit();
             proc.Close();
+
+            this.Cursor = Cursors.Default;
+            commandButton.BackColor = Color.WhiteSmoke;
+
+            if (Properties.Settings.Default.commandServer)
+            {
+                openServer();
+            }
         }
 
         private void commandBox_TextChanged(object sender, EventArgs e)
@@ -253,6 +302,29 @@ namespace ServerManager
                 }
             }
             catch { }
+        }
+
+        private void commandServer_CheckedChanged(object sender, EventArgs e)
+        {
+            CheckBox? cmb = sender as CheckBox;
+            try
+            {
+                Properties.Settings.Default.commandServer = cmb.Checked;
+                Properties.Settings.Default.Save();
+            }
+            catch { }
+        }
+
+        private void uniqueBox_CheckedChanged(object sender, EventArgs e)
+        {
+            CheckBox? cmb = sender as CheckBox;
+            try
+            {
+                Properties.Settings.Default.uniqueBox = cmb.Checked;
+                Properties.Settings.Default.Save();
+            }
+            catch { }
+
         }
     }
 }
