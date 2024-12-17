@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <ApplicationIcon>bin\Release\net6.0-windows\taco.ico</ApplicationIcon>
+    <ApplicationIcon>taco.ico</ApplicationIcon>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
   </PropertyGroup>
@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="bin\Release\net6.0-windows\taco.ico" />
+    <Content Include="taco.ico" />
   </ItemGroup>
 
   <ItemGroup>
