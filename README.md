@@ -1,6 +1,6 @@
 # ServerManager
 
-![image](https://github.com/gonzalologorg/ServerManager/assets/7375225/57c06152-21e8-44ac-99ff-5c61e8ae9de7)
+![image](https://sharex.imgonzo.dev/f/OsbN8Pm2wdBICoQY52Nl.png)
 
 _Easier than just doing a dumb bat file for windows_
 
