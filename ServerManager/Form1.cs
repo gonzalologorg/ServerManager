@@ -51,7 +51,6 @@ namespace ServerManager
 			var task = Task.Run(async () =>
 			{
 				//converts portsOpen.Text to number
-
 				int portNumber = Int32.Parse(portsOpen.Text);
 				bool isOpen = await TCPListener.StartWorker(portNumber);
 
@@ -70,12 +69,21 @@ namespace ServerManager
 		private void rebuildPresets(PresetManager presets)
 		{
 			presetsBox.Items.Clear();
+
+			string def = Properties.Settings.Default.lastSelected;
+			int slot = 0;
 			foreach (Preset preset in presets.presetList)
 			{
 				presetsBox.Items.Add(preset.Name);
+				if (def == preset.Name)
+				{
+					presetsBox.Text = preset.Name;
+					selectPreset(slot);
+                }
+				slot++;
+
 			}
 		}
-
 		private void rebuildScripts(ScriptsManager scripts)
 		{
 			scriptsBox.Items.Clear();
@@ -121,22 +129,25 @@ namespace ServerManager
 
 		private void openClient()
 		{
-			instances++;
-
 			string screenWidth = resolutionBox.Text.Substring(0, 4).ToString();
 			string screenHeight = resolutionBox.Text.Substring(5).ToString();
-			float margin = 96f;
+
+			int screenW = Screen.PrimaryScreen.WorkingArea.Width - 16;
+			int screenH = Screen.PrimaryScreen.WorkingArea.Height - 40;
+
+            float marginX = screenW - int.Parse(screenWidth);
+            float marginY = screenH - int.Parse(screenHeight);
 
 			string size = "-w " + screenWidth + " -h " + screenHeight;
-			size += " -x " + ((instances % 2) * margin * 1.25f).ToString() + " -y " + ((instances % 2) * margin).ToString();
+			size += " -x " + ((instances % 2) * marginX).ToString() + " -y " + ((instances % 2) * marginY).ToString();
 
 			Process newClient = new Process();
 			newClient.StartInfo.Arguments = clientArgs.Text + " +connect " + GetLocalIPAddress() + ":" + portsOpen.Text + " " + size;
 			newClient.StartInfo.FileName = clientPath.Text;
 
 			newClient.Start();
-			openClientButton.BackColor = Color.Teal;
-		}
+            instances++;
+        }
 
 		private void openServer()
 		{
@@ -146,12 +157,12 @@ namespace ServerManager
 			serverProcess.EnableRaisingEvents = true;
 			serverProcess.Exited += ServerProcess_Exited;
 
-			serverProcess.Start();
+            serverProcess.Start();
 		}
 
 		private void openServerButton_Click(object sender, EventArgs e)
 		{
-			if (Properties.Settings.Default.uniqueBox && serverProcess != null)
+			if (Properties.Settings.Default.uniqueBox && serverProcess != null && serverProcess.Container != null)
 			{
 				serverProcess.CloseMainWindow();
 				serverProcess.Close();
@@ -199,7 +210,7 @@ namespace ServerManager
 			foreach (Process process in processes)
 			{
 				Console.WriteLine(process.Id);
-				if (process.ProcessName == "hl2")
+				if (process.ProcessName == "hl2" || process.ProcessName == "gmod")
 				{
 					process.Kill(true);
 					process.Close();
@@ -241,47 +252,55 @@ namespace ServerManager
 			Properties.Settings.Default.Save();
 		}
 
+		private void selectPreset(int slot)
+		{
+            try
+            {
+                Preset preset = presetManager.presetList[slot];
+                if (preset != null)
+                {
+                    Properties.Settings.Default.lastSelected = preset.Name;
+                    Properties.Settings.Default.Save();
+
+                    serverPath.Text = preset.Path;
+                    serverArgs.Text = preset.Arguments;
+
+                    foreach (var entry in parameterList)
+                    {
+                        entry.Key.Dispose();
+                    }
+
+                    parameterList.Clear();
+
+                    var parts = Regex.Matches(serverArgs.Text, @"[\""].+?[\""]|[^ ]+")
+                        .Cast<Match>()
+                        .Select(m => m.Value)
+                        .ToList();
+
+                    int cursor = 0;
+                    while (cursor < parts.Count + 1)
+                    {
+                        string currentKey = parts[cursor];
+                        string newKey = parts.Count >= cursor + 1 ? parts[cursor + 1] : "";
+
+                        if (currentKey.StartsWith("+") || currentKey.StartsWith("-"))
+                        {
+                            if (newKey.StartsWith("+") || newKey.StartsWith("-"))
+                                newKey = "";
+
+                            CreateNewOption(currentKey, newKey);
+                        }
+                        cursor += newKey != "" ? 2 : 1;
+                    }
+                }
+            }
+            catch { }
+        }
+
 		private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
 		{
 			ComboBox? cmb = sender as ComboBox;
-			try
-			{
-				Preset preset = presetManager.presetList[cmb.SelectedIndex];
-				if (preset != null)
-				{
-					serverPath.Text = preset.Path;
-					serverArgs.Text = preset.Arguments;
-
-					foreach (var entry in parameterList)
-					{
-						entry.Key.Dispose();
-					}
-
-					parameterList.Clear();
-
-					var parts = Regex.Matches(serverArgs.Text, @"[\""].+?[\""]|[^ ]+")
-						.Cast<Match>()
-						.Select(m => m.Value)
-						.ToList();
-
-					int cursor = 0;
-					while (cursor < parts.Count + 1)
-					{
-						string currentKey = parts[cursor];
-						string newKey = parts.Count >= cursor + 1 ? parts[cursor + 1] : "";
-
-						if (currentKey.StartsWith("+") || currentKey.StartsWith("-"))
-						{
-							if (newKey.StartsWith("+") || newKey.StartsWith("-"))
-								newKey = "";
-
-							CreateNewOption(currentKey, newKey);
-						}
-						cursor += newKey != "" ? 2 : 1;
-					}
-				}
-			}
-			catch { }
+			selectPreset(cmb.SelectedIndex);
 		}
 
 		private void button1_Click(object sender, EventArgs e)
