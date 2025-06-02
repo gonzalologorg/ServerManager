@@ -26,5 +26,8 @@
     <Setting Name="lastSelected" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="screenMode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">window</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -118,5 +118,17 @@ namespace ServerManager.Properties {
                 this["lastSelected"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("window")]
+        public string screenMode {
+            get {
+                return ((string)(this["screenMode"]));
+            }
+            set {
+                this["screenMode"] = value;
+            }
+        }
     }
 }

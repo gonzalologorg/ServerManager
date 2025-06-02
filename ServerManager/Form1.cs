@@ -34,6 +34,7 @@ namespace ServerManager
 			serverPath.Text = Properties.Settings.Default.serverPath;
 			clientPath.Text = Properties.Settings.Default.clientPath;
 			commandBox.Text = Properties.Settings.Default.commandBox;
+			screenModeCBox.Text = Properties.Settings.Default.screenMode;
 			commandServer.Checked = Properties.Settings.Default.commandServer;
 
 			presetManager = presets;
@@ -79,7 +80,7 @@ namespace ServerManager
 				{
 					presetsBox.Text = preset.Name;
 					selectPreset(slot);
-                }
+				}
 				slot++;
 
 			}
@@ -135,19 +136,22 @@ namespace ServerManager
 			int screenW = Screen.PrimaryScreen.WorkingArea.Width - 16;
 			int screenH = Screen.PrimaryScreen.WorkingArea.Height - 40;
 
-            float marginX = screenW - int.Parse(screenWidth);
-            float marginY = screenH - int.Parse(screenHeight);
+			float marginX = screenW - int.Parse(screenWidth);
+			float marginY = screenH - int.Parse(screenHeight);
 
-			string size = "-w " + screenWidth + " -h " + screenHeight;
-			size += " -x " + ((instances % 2) * marginX).ToString() + " -y " + ((instances % 2) * marginY).ToString();
+			string size = "-" + screenModeCBox.Text + " -w " + screenWidth + " -h " + screenHeight;
+
+			if (screenModeCBox.Text != "noborder" || int.Parse(screenHeight) != Screen.PrimaryScreen.WorkingArea.Height)
+				size += " -x " + ((instances % 2) * marginX).ToString() + " -y " + ((instances % 2) * marginY).ToString();
+
 
 			Process newClient = new Process();
 			newClient.StartInfo.Arguments = clientArgs.Text + " +connect " + GetLocalIPAddress() + ":" + portsOpen.Text + " " + size;
 			newClient.StartInfo.FileName = clientPath.Text;
 
 			newClient.Start();
-            instances++;
-        }
+			instances++;
+		}
 
 		private void openServer()
 		{
@@ -157,7 +161,7 @@ namespace ServerManager
 			serverProcess.EnableRaisingEvents = true;
 			serverProcess.Exited += ServerProcess_Exited;
 
-            serverProcess.Start();
+			serverProcess.Start();
 		}
 
 		private void openServerButton_Click(object sender, EventArgs e)
@@ -254,48 +258,48 @@ namespace ServerManager
 
 		private void selectPreset(int slot)
 		{
-            try
-            {
-                Preset preset = presetManager.presetList[slot];
-                if (preset != null)
-                {
-                    Properties.Settings.Default.lastSelected = preset.Name;
-                    Properties.Settings.Default.Save();
+			try
+			{
+				Preset preset = presetManager.presetList[slot];
+				if (preset != null)
+				{
+					Properties.Settings.Default.lastSelected = preset.Name;
+					Properties.Settings.Default.Save();
 
-                    serverPath.Text = preset.Path;
-                    serverArgs.Text = preset.Arguments;
+					serverPath.Text = preset.Path;
+					serverArgs.Text = preset.Arguments;
 
-                    foreach (var entry in parameterList)
-                    {
-                        entry.Key.Dispose();
-                    }
+					foreach (var entry in parameterList)
+					{
+						entry.Key.Dispose();
+					}
 
-                    parameterList.Clear();
+					parameterList.Clear();
 
-                    var parts = Regex.Matches(serverArgs.Text, @"[\""].+?[\""]|[^ ]+")
-                        .Cast<Match>()
-                        .Select(m => m.Value)
-                        .ToList();
+					var parts = Regex.Matches(serverArgs.Text, @"[\""].+?[\""]|[^ ]+")
+						.Cast<Match>()
+						.Select(m => m.Value)
+						.ToList();
 
-                    int cursor = 0;
-                    while (cursor < parts.Count + 1)
-                    {
-                        string currentKey = parts[cursor];
-                        string newKey = parts.Count >= cursor + 1 ? parts[cursor + 1] : "";
+					int cursor = 0;
+					while (cursor < parts.Count + 1)
+					{
+						string currentKey = parts[cursor];
+						string newKey = parts.Count >= cursor + 1 ? parts[cursor + 1] : "";
 
-                        if (currentKey.StartsWith("+") || currentKey.StartsWith("-"))
-                        {
-                            if (newKey.StartsWith("+") || newKey.StartsWith("-"))
-                                newKey = "";
+						if (currentKey.StartsWith("+") || currentKey.StartsWith("-"))
+						{
+							if (newKey.StartsWith("+") || newKey.StartsWith("-"))
+								newKey = "";
 
-                            CreateNewOption(currentKey, newKey);
-                        }
-                        cursor += newKey != "" ? 2 : 1;
-                    }
-                }
-            }
-            catch { }
-        }
+							CreateNewOption(currentKey, newKey);
+						}
+						cursor += newKey != "" ? 2 : 1;
+					}
+				}
+			}
+			catch { }
+		}
 
 		private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
 		{
@@ -381,7 +385,7 @@ namespace ServerManager
 			catch { }
 		}
 
-		void CreateNewOption(string? keyText=null, string? valueText=null)
+		void CreateNewOption(string? keyText = null, string? valueText = null)
 		{
 			Panel newEntry = new Panel();
 			newEntry.Parent = this.panelParamList;
@@ -442,6 +446,17 @@ namespace ServerManager
 		private void btnAddLine_Click(object sender, EventArgs e)
 		{
 			CreateNewOption();
+		}
+
+		private void screenModeCBox_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			ComboBox? cmb = sender as ComboBox;
+			try
+			{
+				Properties.Settings.Default.screenMode = cmb.Text;
+				Properties.Settings.Default.Save();
+			}
+			catch { }
 		}
 	}
 }
